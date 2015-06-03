@@ -4,4 +4,4 @@ __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 BYTE_MAX = 256
 INF = 1 << 63
 
-__all__ = ['cryptanalysis', 'ciphers', 'conversions', 'mathtools', 'utility']
+__all__ = ['cryptanalysis', 'ciphers', 'conversions', 'mathtools', 'utility', 'BYTE_MAX', 'INF']

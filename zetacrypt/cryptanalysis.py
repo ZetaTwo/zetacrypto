@@ -3,8 +3,7 @@ __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import string
 from collections import Counter
 
-from zetacrypt import INF, BYTE_MAX
-from mathtools import rms_error, hamming_distance_bit
+from . import conversions, utility, mathtools, INF, BYTE_MAX
 from ciphers import xor_seq_byte
 
 
@@ -51,19 +50,21 @@ def index_coincidence(seq):
 def find_single_byte_xor_key(seq, printable_threshold=0.85):
     """Find the most probable single byte XOR key used to encrypt seq"""
     if type(seq) == str:
-        seq = map(ord, seq)
+        seq = conversions.ascii_to_byte(seq)
     best_dist = INF
     best_key = 0
     best = "FAIL"
     for key in range(BYTE_MAX):
         m = xor_seq_byte(seq, key)
-        m = ''.join(map(chr, m))
+        m = conversions.byte_to_ascii(m)
 
+        # If enough are printable, check letter frequency
         if count_printable(m) < len(m) * printable_threshold:
             continue
-
         freq = letter_frequency_rel(m)
-        dist = rms_error(freq, FREQ_ENGLISH)
+        dist = mathtools.rms_error(freq, FREQ_ENGLISH)
+
+        # If better, save
         if dist < best_dist:
             best = m
             best_key = key
@@ -77,13 +78,15 @@ def find_vigenere_key_len(cipher, mink, maxk):
     best_keysize = 0
     for keysize in range(mink, maxk):
         # Average hamming weight over BLOCKS
-        dist = 0
-        num_blocks = len(cipher) / keysize
-        for i in range(num_blocks):
-            block1 = cipher[i * keysize:(i + 1) * keysize]
-            block2 = cipher[(i + 1) * keysize:(i + 2) * keysize]
-            dist += float(hamming_distance_bit(block1, block2)) / keysize
-        dist /= num_blocks
+        dist = []
+        blocks = utility.chunks(cipher, keysize)
+
+        # Moving pairwise distance
+        prev_block = blocks.next()
+        for block in blocks:
+            dist.append(float(mathtools.hamming_distance_bit(prev_block, block)) / keysize)
+            prev_block = block
+        dist = sum(dist)/len(dist)
 
         # If better, save
         if dist < best_dist:
@@ -95,7 +98,7 @@ def find_vigenere_key_len(cipher, mink, maxk):
 def find_vigenere_key(cipher, keylen):
     """Breaks a vigenere cipher with known keylen"""
     key = []
-    for i in range(keylen):
-        _, k, _ = find_single_byte_xor_key(cipher[i::keylen])
+    for block in utility.transpose(cipher, keylen):
+        _, k, _ = find_single_byte_xor_key(block)
         key.append(k)
     return key

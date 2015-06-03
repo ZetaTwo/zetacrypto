@@ -1,6 +1,9 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import itertools
 
+from Crypto.Cipher import AES
+from . import utility
+
 
 def xor_seq_byte(seq, key):
     """Returns seq XOR:ed with single byte key"""
@@ -20,3 +23,17 @@ def pkcs7(seq, targetlen):
     padlen = targetlen - len(seq)
     assert padlen >= 0
     return seq + [padlen] * padlen
+
+
+def aes_128_cbc_decrypt(cipher, key, iv):
+    aes = AES.new(key, AES.MODE_ECB)
+
+    plaintext = []
+    prev = iv
+    for block in utility.chunks(cipher, 16):
+        dec = aes.decrypt(block)
+        plaintext += xor_seq_key(dec, prev)
+        prev = block
+
+    return plaintext
+

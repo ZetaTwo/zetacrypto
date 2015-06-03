@@ -3,7 +3,6 @@ from collections import Counter
 
 from Crypto.Cipher import AES
 
-import zetacrypt
 from zetacrypt import *
 
 
@@ -37,7 +36,7 @@ def problem3():
 def problem4():
     with open('4.txt', 'r') as cipherfile:
         best = 'FAIL'
-        best_dist = zetacrypt.INF
+        best_dist = INF
         for hexline in cipherfile:
             byteline = conversions.hex_to_byte(hexline.strip())
             m, key, dist = cryptanalysis.find_single_byte_xor_key(byteline)
@@ -94,7 +93,7 @@ def problem8():
         for hexline in cipherfile:
             hexline = hexline.strip()
             byteline = conversions.hex_to_ascii(hexline)
-            blocks = Counter(byteline[i * block_size:(i + 1) * block_size] for i in range(len(byteline) / block_size))
+            blocks = Counter(utility.chunks(byteline, block_size))
             count = blocks.most_common(1)[0][1]
             if count > best_count:
                 best_count = count
@@ -104,11 +103,11 @@ def problem8():
     print(best_index, best_count, best)
 
 
-problem1()
-problem2()
-problem3()
-problem4()
-problem5()
+#problem1()
+#problem2()
+#problem3()
+#problem4()
+#problem5()
 problem6()
-problem7()
-problem8()
+#problem7()
+#problem8()

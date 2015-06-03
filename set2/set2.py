@@ -1,5 +1,6 @@
 from zetacrypt import *
 
+import base64
 
 # Problem 1
 def problem1():
@@ -9,4 +10,11 @@ def problem1():
     c = conversions.byte_to_ascii(c)
     print(ciphertext == c)
 
+# Problem 2
+def problem2():
+    ciphertext = base64.b64decode(utility.readfile('10.txt'))
+    plaintext = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_byte("00000000000000000000000000000000"))
+    print(conversions.byte_to_ascii(plaintext))
+
 problem1()
+problem2()
