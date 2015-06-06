@@ -4,7 +4,7 @@ import string
 from collections import Counter
 
 from . import conversions, utility, mathtools, INF, BYTE_MAX
-from ciphers import xor_seq_byte
+from zetacrypt.ciphers import xor_seq_byte
 
 
 # The relative frequency of alphabet letters in the English language
@@ -19,7 +19,7 @@ def count_printable(seq):
     """Returns the number of printable ASCII characters in seq"""
     if type(seq) == str:
         seq = map(ord, seq)
-    return len(filter(lambda c: 32 <= c <= 126, seq))
+    return len(list(filter(lambda c: 32 <= c <= 126, seq)))
 
 
 def is_printable(seq):
@@ -29,9 +29,9 @@ def is_printable(seq):
 
 def letter_frequency(seq):
     """Returns a dictionary with the frequencies of letters in the sequence"""
-    freq = filter(lambda x: x in string.letters, seq.lower())
+    freq = filter(lambda x: x in string.ascii_letters, seq.lower())
     freq = dict(Counter(freq).most_common())
-    freq.update(dict((x, 0) for x in filter(lambda x: x not in freq, string.lowercase)))
+    freq.update(dict((x, 0) for x in filter(lambda x: x not in freq, string.ascii_lowercase)))
     return freq
 
 
@@ -56,7 +56,7 @@ def find_single_byte_xor_key(seq, printable_threshold=0.85):
     best = "FAIL"
     for key in range(BYTE_MAX):
         m = xor_seq_byte(seq, key)
-        m = conversions.byte_to_ascii(m)
+        m = conversions.bytes_to_ascii(m)
 
         # If enough are printable, check letter frequency
         if count_printable(m) < len(m) * printable_threshold:

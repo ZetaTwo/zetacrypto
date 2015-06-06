@@ -8,7 +8,7 @@ def readfile(path):
 
 
 def chunks(seq, size):
-    num_blocks = (len(seq) + size - 1) / size
+    num_blocks = (len(seq) + size - 1) // size
     for i in range(num_blocks):
         yield seq[i * size:(i + 1) * size]
 

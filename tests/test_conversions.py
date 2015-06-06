@@ -7,25 +7,19 @@ from zetacrypt import conversions
 class TestConversionFunctions(unittest.TestCase):
     ASCII_TEST = "ABCD"
     HEX_TEST = "41424344"
-    BYTE_TEST = [65, 66, 67, 68]
+    BYTE_TEST = b"ABCD"
 
-    def test_hex_to_ascii(self):
-        self.assertEqual(self.ASCII_TEST, conversions.hex_to_ascii(self.HEX_TEST))
+    def test_hex_to_bytes(self):
+        self.assertEqual(self.BYTE_TEST, conversions.hex_to_bytes(self.HEX_TEST))
 
-    def test_ascii_to_hex(self):
-        self.assertEqual(self.HEX_TEST, conversions.ascii_to_hex(self.ASCII_TEST))
+    def test_bytes_to_hex(self):
+        self.assertEqual(self.HEX_TEST, conversions.bytes_to_hex(self.BYTE_TEST))
 
-    def test_hex_to_byte(self):
-        self.assertEqual(self.BYTE_TEST, conversions.hex_to_byte(self.HEX_TEST))
+    def test_ascii_to_bytes(self):
+        self.assertEqual(self.BYTE_TEST, conversions.ascii_to_bytes(self.ASCII_TEST))
 
-    def test_byte_to_hex(self):
-        self.assertEqual(self.HEX_TEST, conversions.byte_to_hex(self.BYTE_TEST))
-
-    def test_ascii_to_byte(self):
-        self.assertEqual(self.BYTE_TEST, conversions.ascii_to_byte(self.ASCII_TEST))
-
-    def test_byte_to_ascii(self):
-        self.assertEqual(self.ASCII_TEST, conversions.byte_to_ascii(self.BYTE_TEST))
+    def test_bytes_to_ascii(self):
+        self.assertEqual(self.ASCII_TEST, conversions.bytes_to_ascii(self.BYTE_TEST))
 
     def set1_problem1(self):
         """Set 1 problem 1"""

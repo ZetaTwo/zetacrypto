@@ -8,17 +8,17 @@ class TestStreamFunctions(unittest.TestCase):
     def test_blocks(self):
         data = "abcddcbaxy"
         ch = utility.chunks(data, 4)
-        self.assertEqual("abcd", ch.next())
-        self.assertEqual("dcba", ch.next())
-        self.assertEqual("xy", ch.next())
+        self.assertEqual("abcd", next(ch))
+        self.assertEqual("dcba", next(ch))
+        self.assertEqual("xy", next(ch))
 
     def test_transpose(self):
         data = "abcdabcdabcdab"
         ch = utility.transpose(data, 4)
-        self.assertEqual("aaaa", ch.next())
-        self.assertEqual("bbbb", ch.next())
-        self.assertEqual("ccc", ch.next())
-        self.assertEqual("ddd", ch.next())
+        self.assertEqual("aaaa", next(ch))
+        self.assertEqual("bbbb", next(ch))
+        self.assertEqual("ccc", next(ch))
+        self.assertEqual("ddd", next(ch))
 
 if __name__ == '__main__':
     unittest.main()

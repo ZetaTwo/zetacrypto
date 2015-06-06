@@ -22,7 +22,7 @@ def xor_seq_key(seq, key):
 def pkcs7(seq, targetlen):
     padlen = targetlen - len(seq)
     assert padlen >= 0
-    return seq + [padlen] * padlen
+    return seq + bytes([padlen]*padlen)
 
 
 def aes_128_cbc_decrypt(cipher, key, iv):

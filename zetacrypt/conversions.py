@@ -2,31 +2,18 @@ __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import binascii
 
 
-def hex_to_ascii(seq):
-    """Converts seq from hex string to ASCII string"""
-    return seq.decode("hex")
-
-
-def ascii_to_hex(seq):
-    """Converts seq from ASCII string to hex string"""
-    return seq.encode("hex")
-
-
-def hex_to_byte(seq):
+def hex_to_bytes(seq):
     """Converts seq from hex string to byte array"""
-    return map(ord, binascii.unhexlify(seq))
+    return binascii.unhexlify(seq)
 
-
-def byte_to_hex(seq):
-    """Converts seq from byte array to hex string"""
-    return binascii.hexlify(bytearray(seq))
-
-
-def ascii_to_byte(seq):
+def ascii_to_bytes(seq):
     """Converts seq from ASCII string to byte array"""
-    return map(ord, seq)
+    return bytes(seq, 'ascii')
 
+def bytes_to_hex(seq):
+    """Converts seq from byte array to hex string"""
+    return str(binascii.hexlify(seq), 'ascii')
 
-def byte_to_ascii(seq):
+def bytes_to_ascii(seq):
     """Converts seq from byte array to ASCII string"""
     return ''.join(map(chr, seq))

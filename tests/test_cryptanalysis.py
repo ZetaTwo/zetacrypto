@@ -18,7 +18,7 @@ class TestTextFunctions(unittest.TestCase):
 class TextXorFunctions(unittest.TestCase):
     def test_find_single_byte_xor_key(self):
         """Set 1 problem 3"""
-        ciphertext = conversions.hex_to_byte("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
+        ciphertext = conversions.hex_to_bytes("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
         plaintext = "Cooking MC's like a pound of bacon"
         key = 88
 
