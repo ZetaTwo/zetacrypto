@@ -4,7 +4,7 @@ import binascii
 
 def hex_to_bytes(seq):
     """Converts seq from hex string to byte array"""
-    return binascii.unhexlify(seq)
+    return binascii.unhexlify(bytes(seq, 'ascii'))
 
 def ascii_to_bytes(seq):
     """Converts seq from ASCII string to byte array"""
