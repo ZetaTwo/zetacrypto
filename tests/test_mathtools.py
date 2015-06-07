@@ -21,6 +21,10 @@ class TestMathFunctions(unittest.TestCase):
     def test_hamming_distance_bit(self):
         self.assertEqual(37, mathtools.hamming_distance_bit("this is a test", "wokka wokka!!!"))
 
+    def test_mean(self):
+        self.assertEqual(0, mathtools.mean([-1, 0, 1]))
+        self.assertEqual(2, mathtools.mean([1, 2, 3]))
+
     def test_rms_error(self):
         self.assertEqual(2, mathtools.rms_error({'a': 0, 'b': 1, 'c': 2}, {'a': 2, 'b': 3, 'c': 0}))
 

@@ -12,7 +12,7 @@ def ascii_to_bytes(seq):
 
 def bytes_to_hex(seq):
     """Converts seq from byte array to hex string"""
-    return str(binascii.hexlify(seq), 'ascii')
+    return str(binascii.hexlify(bytes(seq)), 'ascii')
 
 def bytes_to_ascii(seq):
     """Converts seq from byte array to ASCII string"""

@@ -12,10 +12,6 @@ def xor_seq_byte(seq, key):
 
 def xor_seq_key(seq, key):
     """Returns seq XOR:ed with key repeated to cover all of seq"""
-    if type(seq) == str:
-        seq = map(ord, seq)
-    if type(key) == str:
-        key = map(ord, key)
     return map(lambda x: x[0] ^ x[1], zip(itertools.cycle(key), seq))
 
 

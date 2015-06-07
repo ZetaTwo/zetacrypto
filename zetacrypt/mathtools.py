@@ -11,6 +11,9 @@ def levenshtein_swap(seq1, seq2):
         res += abs(i1 - i2)
     return res / 2
 
+def mean(seq):
+    l = list(seq)
+    return sum(l)/len(l)
 
 def hamming_distance_char(seq1, seq2):
     """Returns the character hamming distance of two sequences of equal length"""

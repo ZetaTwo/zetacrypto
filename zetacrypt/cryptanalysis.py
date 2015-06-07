@@ -13,12 +13,10 @@ FREQ_ENGLISH = {'e': 0.12575645, 't': 0.9085226, 'a': 0.8000395, 'o': 0.7591270,
                 'c': 0.2575785, 'm': 0.2560994, 'f': 0.2350463, 'w': 0.2224893, 'g': 0.1982677, 'y': 0.1900888,
                 'p': 0.1795742, 'b': 0.1535701, 'v': 0.0981717, 'k': 0.0739906, 'x': 0.0179556, 'j': 0.0145188,
                 'q': 0.0117571, 'z': 0.0079130}
-
+IC_ENGLISH = 1.73
 
 def count_printable(seq):
     """Returns the number of printable ASCII characters in seq"""
-    if type(seq) == str:
-        seq = map(ord, seq)
     return len(list(filter(lambda c: 32 <= c <= 126, seq)))
 
 
@@ -39,28 +37,28 @@ def letter_frequency_rel(seq):
     """Returns a dictionary with the relative frequency of letters in the sequence"""
     freq = letter_frequency(seq)
     total = len(seq)
-    return {k: float(v) / total for k, v in freq.items()}
+    return {k: v / total for k, v in freq.items()}
 
 
 def index_coincidence(seq):
     """Returns the index of coincidence for a sequence"""
-    raise NotImplementedError()
+    freq = letter_frequency(seq)
+    return len(string.ascii_lowercase) * sum(map(lambda x: x*(x-1), freq.values())) / (len(seq)*(len(seq) - 1))
 
 
-def find_single_byte_xor_key(seq, printable_threshold=0.85):
+def find_single_byte_xor_key(seq, printable_threshold=0.9):
     """Find the most probable single byte XOR key used to encrypt seq"""
-    if type(seq) == str:
-        seq = conversions.ascii_to_byte(seq)
     best_dist = INF
     best_key = 0
     best = "FAIL"
     for key in range(BYTE_MAX):
-        m = xor_seq_byte(seq, key)
-        m = conversions.bytes_to_ascii(m)
+        m = bytes(xor_seq_byte(seq, key))
 
         # If enough are printable, check letter frequency
-        if count_printable(m) < len(m) * printable_threshold:
+        if count_printable(m) < (len(m) * printable_threshold):
             continue
+
+        m = conversions.bytes_to_ascii(m)
         freq = letter_frequency_rel(m)
         dist = mathtools.rms_error(freq, FREQ_ENGLISH)
 
@@ -82,7 +80,7 @@ def find_vigenere_key_len(cipher, mink, maxk):
         blocks = utility.chunks(cipher, keysize)
 
         # Moving pairwise distance
-        prev_block = blocks.next()
+        prev_block = next(blocks)
         for block in blocks:
             dist.append(float(mathtools.hamming_distance_bit(prev_block, block)) / keysize)
             prev_block = block

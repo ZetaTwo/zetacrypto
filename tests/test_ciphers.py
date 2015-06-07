@@ -1,7 +1,8 @@
 __author__ = 'Calle'
 import unittest
 
-from zetacrypt import ciphers, conversions
+import base64
+from zetacrypt import ciphers, conversions, utility
 
 
 class TestXORFunctions(unittest.TestCase):
@@ -10,6 +11,12 @@ class TestXORFunctions(unittest.TestCase):
         ciphertext = conversions.ascii_to_bytes("ABCD")
         key = ord(' ')
         self.assertEqual(ciphertext, bytes(ciphers.xor_seq_byte(plaintext, key)))
+
+    def test_key_xor_byte(self):
+        plaintext = conversions.ascii_to_bytes("a c ")
+        key = conversions.ascii_to_bytes(" b")
+        ciphertext = conversions.ascii_to_bytes("ABCB")
+        self.assertEqual(ciphertext, bytes(ciphers.xor_seq_key(plaintext, key)))
 
     def set1_problem2(self):
         """Set 1 problem 2"""
@@ -25,3 +32,12 @@ class TestPrepareFunctions(unittest.TestCase):
         ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
         c = ciphers.pkcs7(plaintext, 20)
         self.assertEqual(ciphertext, c)
+
+class TestModernCiphersFunctions(unittest.TestCase):
+    def test_aes_128_cbc(self):
+        target = "I'm back and I'm ringin' the bell \nA rockin' on "
+
+        ciphertext = base64.b64decode(utility.readfile('data/test_aes_cbc_128.txt'))
+        plaintext = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
+        plaintext = conversions.bytes_to_ascii(plaintext)
+        self.assertEqual(target, plaintext)

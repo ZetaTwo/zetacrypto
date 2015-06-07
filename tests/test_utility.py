@@ -5,6 +5,10 @@ from zetacrypt import utility
 
 
 class TestStreamFunctions(unittest.TestCase):
+    def test_readfile(self):
+        testdata = utility.readfile('data/testdata1.txt')
+        self.assertEqual("Hello World!", testdata)
+
     def test_blocks(self):
         data = "abcddcbaxy"
         ch = utility.chunks(data, 4)
