@@ -74,13 +74,12 @@ class TestVigenereFunctions(unittest.TestCase):
         self.assertEqual(29, keysize)
 
     def test_find_vigenere_key(self):
-        target = "Terminator X: Bring the noise"
+        target = conversions.ascii_to_bytes("Terminator X: Bring the noise")
         ciphertext = utility.readfile('data/vigenere1.txt')
         ciphertext = base64.b64decode(ciphertext)
 
         keysize = 29
         key = cryptanalysis.find_vigenere_key(ciphertext, keysize)
-        key = str(bytearray(key))
         self.assertEqual(target, key)
 
 if __name__ == '__main__':

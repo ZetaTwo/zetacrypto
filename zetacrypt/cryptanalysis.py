@@ -60,7 +60,7 @@ def find_single_byte_xor_key(seq, printable_threshold=0.9):
 
         m = conversions.bytes_to_ascii(m)
         freq = letter_frequency_rel(m)
-        dist = mathtools.rms_error(freq, FREQ_ENGLISH)
+        dist = mathtools.rms_error_dict(freq, FREQ_ENGLISH)
 
         # If better, save
         if dist < best_dist:
@@ -99,4 +99,4 @@ def find_vigenere_key(cipher, keylen):
     for block in utility.transpose(cipher, keylen):
         _, k, _ = find_single_byte_xor_key(block)
         key.append(k)
-    return key
+    return bytes(key)

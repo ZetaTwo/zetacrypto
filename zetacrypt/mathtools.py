@@ -34,7 +34,15 @@ def hamming_distance_bit(seq1, seq2):
     return sum(map(lambda x: hamming_weight(x[0] ^ x[1]), zip(seq1, seq2)))
 
 
-def rms_error(dict1, dict2):
+def rms_error(seq1, seq2):
+    """Returns the RMS error between two lists of values"""
+    assert len(seq1) == len(seq2)
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(seq1, seq2)) / len(seq1))
+
+
+def rms_error_dict(dict1, dict2):
     """Returns the RMS error between two dictionaries with the same keys"""
-    assert dict1.keys() == dict2.keys()
-    return math.sqrt(sum((x - y) ** 2 for x, y in zip(dict1.values(), dict2.values())) / len(dict1))
+    keys = dict1.keys()
+    val1 = [dict1[k] for k in keys]
+    val2 = [dict2[k] for k in keys]
+    return rms_error(val1, val2)
