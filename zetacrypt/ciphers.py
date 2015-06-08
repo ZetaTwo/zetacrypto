@@ -14,12 +14,18 @@ def xor_seq_key(seq, key):
     """Returns seq XOR:ed with key repeated to cover all of seq"""
     return map(lambda x: x[0] ^ x[1], zip(itertools.cycle(key), seq))
 
-
-def pkcs7(seq, targetlen):
-    padlen = targetlen - len(seq)
+def pkcs7_pad(seq, blocklen):
+    padlen = blocklen - (len(seq) % blocklen)
     assert padlen >= 0
     return seq + bytes([padlen]*padlen)
 
+def pkcs7_verify(seq):
+    padlen = seq[-1]
+    return len(seq) >= padlen and all(map(lambda x: x == padlen, seq[-padlen:]))
+
+def pkcs7_strip(seq):
+    padlen = seq[-1]
+    return seq[:-padlen]
 
 def aes_128_cbc_decrypt(cipher, key, iv):
     aes = AES.new(key, AES.MODE_ECB)

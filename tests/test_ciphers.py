@@ -25,12 +25,27 @@ class TestXORFunctions(unittest.TestCase):
         self.assertEqual(ciphertext, ciphers.xor_seq_key(plaintext, key))
 
 class TestPrepareFunctions(unittest.TestCase):
-    def test_pkcs7(self):
+    def test_pkcs7_pad(self):
         """Set 2 problem 1"""
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
         ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
-        c = ciphers.pkcs7(plaintext, 20)
-        self.assertEqual(ciphertext, c)
+        c1 = ciphers.pkcs7_pad(plaintext, 20)
+        self.assertEqual(ciphertext, c1)
+
+        c2 = ciphers.pkcs7_pad(plaintext, 10)
+        self.assertEqual(ciphertext, c2)
+
+    def test_pkcs7_verify(self):
+        ciphertext1 = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        ciphertext2 = b"YELLOW SUBMARINE\x05\x05\x05\x05"
+        self.assertTrue(ciphers.pkcs7_verify(ciphertext1))
+        self.assertFalse(ciphers.pkcs7_verify(ciphertext2))
+
+    def test_pkcs7_strip(self):
+        plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
+        ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        m = ciphers.pkcs7_strip(ciphertext)
+        self.assertEqual(plaintext, m)
 
 class TestModernCiphersFunctions(unittest.TestCase):
     def test_aes_128_cbc(self):

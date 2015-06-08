@@ -80,11 +80,15 @@ class TestSet1Problems(unittest.TestCase):
 
     def test_problem7(self):
         key = "YELLOW SUBMARINE"
-        plaintext = utility.readfile('data/play_that_funky_music.txt') + '\x04\x04\x04\x04'
+        plaintext = utility.readfile('data/play_that_funky_music.txt')
 
         ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
         aes = AES.new(key, AES.MODE_ECB)
-        m = conversions.bytes_to_ascii(aes.decrypt(ciphertext))
+
+        m = aes.decrypt(ciphertext)
+        self.assertTrue(ciphers.pkcs7_verify(m))
+        m = ciphers.pkcs7_strip(m)
+        m = conversions.bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
 
     def test_problem8(self):
@@ -112,16 +116,20 @@ class TestSet2Problems(unittest.TestCase):
     def test_problem9(self):
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
         ciphertext = "YELLOW SUBMARINE\x04\x04\x04\x04"
-        c = ciphers.pkcs7(plaintext, 20)
+        c = ciphers.pkcs7_pad(plaintext, 20)
         c = conversions.bytes_to_ascii(c)
 
         self.assertEqual(ciphertext, c)
 
     def test_problem10(self):
-        plaintext = utility.readfile('data/play_that_funky_music.txt') + '\x04\x04\x04\x04'
+        plaintext = utility.readfile('data/play_that_funky_music.txt')
         ciphertext = conversions.base64_to_bytes(utility.readfile('data/10.txt'))
 
+        # Decrypt
         m = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
-        m = conversions.bytes_to_ascii(m)
 
+        # Verify padding and content
+        self.assertTrue(ciphers.pkcs7_verify(m))
+        m = ciphers.pkcs7_strip(m)
+        m = conversions.bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
