@@ -2,7 +2,7 @@ __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import unittest
 
 import string
-from zetacrypt import cryptanalysis, conversions, utility
+from zetacrypt import cryptanalysis, ciphers, conversions, utility
 
 
 class TestTextFunctions(unittest.TestCase):
@@ -81,6 +81,27 @@ class TestVigenereFunctions(unittest.TestCase):
         keysize = 29
         key = cryptanalysis.find_vigenere_key(ciphertext, keysize)
         self.assertEqual(target, key)
+
+class TextModernCryptoFunctions(unittest.TestCase):
+    def test_detect_ecb(self):
+        target_index = 132
+        found_index = -1
+        with open('data/8.txt') as cipherfile:
+            i = 0
+            for hexline in cipherfile:
+                hexline = hexline.strip()
+                byteline = conversions.bytes_to_ascii(conversions.hex_to_bytes(hexline))
+                if cryptanalysis.detect_ecb(byteline):
+                    found_index = i
+                    break
+                i += 1
+
+        self.assertEqual(target_index, found_index)
+
+    def test_ecb_cbc_oracle(self):
+        for i in range(100):
+            guess, real = cryptanalysis.encryption_detection_oracle_ecb_cbc(ciphers.black_box1, True)
+            self.assertEqual(real, guess)
 
 if __name__ == '__main__':
     unittest.main()

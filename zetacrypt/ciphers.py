@@ -2,8 +2,8 @@ __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import itertools
 
 from Crypto.Cipher import AES
+from random import randint
 from . import utility
-
 
 def xor_seq_byte(seq, key):
     """Returns seq XOR:ed with single byte key"""
@@ -27,7 +27,30 @@ def pkcs7_strip(seq):
     padlen = seq[-1]
     return seq[:-padlen]
 
+def aes_128_ecb_encrypt(plaintext, key):
+    aes = AES.new(key, AES.MODE_ECB)
+    return aes.encrypt(plaintext)
+
+def aes_128_ecb_decrypt(ciphertext, key):
+    aes = AES.new(key, AES.MODE_ECB)
+    return aes.decrypt(ciphertext)
+
+def aes_128_cbc_encrypt(plaintext, key, iv):
+    aes = AES.new(key, AES.MODE_ECB)
+    assert len(iv) == len(key) == 16
+
+    cipertext = []
+    prev = iv
+    for block in utility.chunks(plaintext, 16):
+        m = bytes(xor_seq_key(block, prev))
+        c = aes.encrypt(m)
+        cipertext += c
+        prev = c
+
+    return bytes(cipertext)
+
 def aes_128_cbc_decrypt(cipher, key, iv):
+    assert len(iv) == len(key) == 16
     aes = AES.new(key, AES.MODE_ECB)
 
     plaintext = []
@@ -39,3 +62,25 @@ def aes_128_cbc_decrypt(cipher, key, iv):
 
     return plaintext
 
+def generate_key(keylen):
+    return bytes([randint(0, 255) for _ in range(keylen)])
+
+
+def black_box1(plaintext, answer=False):
+    key = generate_key(16)
+    prepend = generate_key(randint(5, 10))
+    append = generate_key(randint(5, 10))
+
+    m = pkcs7_pad(prepend + plaintext + append, 16)
+
+    mode = randint(0, 1)
+    if mode == 0:  # CBC
+        iv = generate_key(16)
+        c = aes_128_cbc_encrypt(m, key, iv)
+    else:  # ECB
+        c = aes_128_ecb_encrypt(m, key)
+
+    if answer:
+        return c, mode
+    else:
+        return c

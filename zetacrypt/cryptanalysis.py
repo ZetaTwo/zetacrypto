@@ -15,6 +15,7 @@ FREQ_ENGLISH = {'e': 0.12575645, 't': 0.9085226, 'a': 0.8000395, 'o': 0.7591270,
                 'q': 0.0117571, 'z': 0.0079130}
 IC_ENGLISH = 1.73
 
+
 def count_printable(seq):
     """Returns the number of printable ASCII characters in seq"""
     return len(list(filter(lambda c: 32 <= c <= 126, seq)))
@@ -43,7 +44,7 @@ def letter_frequency_rel(seq):
 def index_coincidence(seq):
     """Returns the index of coincidence for a sequence"""
     freq = letter_frequency(seq)
-    return len(string.ascii_lowercase) * sum(map(lambda x: x*(x-1), freq.values())) / (len(seq)*(len(seq) - 1))
+    return len(string.ascii_lowercase) * sum(map(lambda x: x * (x - 1), freq.values())) / (len(seq) * (len(seq) - 1))
 
 
 def find_single_byte_xor_key(seq, printable_threshold=0.9):
@@ -84,7 +85,7 @@ def find_vigenere_key_len(cipher, mink, maxk):
         for block in blocks:
             dist.append(float(mathtools.hamming_distance_bit(prev_block, block)) / keysize)
             prev_block = block
-        dist = sum(dist)/len(dist)
+        dist = sum(dist) / len(dist)
 
         # If better, save
         if dist < best_dist:
@@ -100,3 +101,20 @@ def find_vigenere_key(cipher, keylen):
         _, k, _ = find_single_byte_xor_key(block)
         key.append(k)
     return bytes(key)
+
+
+def detect_ecb(ciphertext):
+    block_size = 16
+    blocks = Counter(utility.chunks(ciphertext, block_size))
+    count = blocks.most_common(1)[0][1]
+    return count > 1
+
+
+def encryption_detection_oracle_ecb_cbc(oracle, answer=False):
+    plaintext = conversions.ascii_to_bytes("A" * (16 * 3))
+    if answer:  # If black box supports it, leak real answer
+        c, ans = oracle(plaintext, True)
+        return detect_ecb(c), ans
+    else:  # Otherwise, just return guess
+        c = oracle(plaintext)
+        return detect_ecb(c)

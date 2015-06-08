@@ -25,6 +25,11 @@ class TestXORFunctions(unittest.TestCase):
         self.assertEqual(ciphertext, ciphers.xor_seq_key(plaintext, key))
 
 class TestPrepareFunctions(unittest.TestCase):
+    def text_generate_key(self):
+        for keylen in range(10):
+            k = ciphers.generate_key(keylen)
+            self.assertEqual(keylen, len(k))
+
     def test_pkcs7_pad(self):
         """Set 2 problem 1"""
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
@@ -48,10 +53,40 @@ class TestPrepareFunctions(unittest.TestCase):
         self.assertEqual(plaintext, m)
 
 class TestModernCiphersFunctions(unittest.TestCase):
-    def test_aes_128_cbc(self):
-        target = "I'm back and I'm ringin' the bell \nA rockin' on "
-
+    def test_aes_128_cbc_decrypt(self):
+        plaintext = "I'm back and I'm ringin' the bell \nA rockin' on "
         ciphertext = conversions.base64_to_bytes(utility.readfile('test_data/test_aes_cbc_128.txt'))
-        plaintext = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
-        plaintext = conversions.bytes_to_ascii(plaintext)
-        self.assertEqual(target, plaintext)
+
+        m = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
+        m = conversions.bytes_to_ascii(m)
+        self.assertEqual(plaintext, m)
+
+    def test_aes_128_cbc_encrypt(self):
+        plaintext = "I'm back and I'm ringin' the bell \nA rockin' on "
+        ciphertext = conversions.base64_to_bytes(utility.readfile('test_data/test_aes_cbc_128.txt'))
+
+        c = ciphers.aes_128_cbc_encrypt(conversions.ascii_to_bytes(plaintext), "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
+        self.assertEqual(ciphertext, c)
+
+    def test_aes_128_ecb_decrypt(self):
+        key = "YELLOW SUBMARINE"
+        plaintext = utility.readfile('data/play_that_funky_music.txt')
+        ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
+
+        m = ciphers.aes_128_ecb_decrypt(ciphertext, key)
+        self.assertTrue(ciphers.pkcs7_verify(m))
+        m = ciphers.pkcs7_strip(m)
+        m = conversions.bytes_to_ascii(m)
+        self.assertEqual(plaintext, m)
+
+    def test_aes_128_ecb_encrypt(self):
+        key = "YELLOW SUBMARINE"
+        plaintext = conversions.ascii_to_bytes(utility.readfile('data/play_that_funky_music.txt'))
+        ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
+
+        m = ciphers.pkcs7_pad(plaintext, 16)
+        c = ciphers.aes_128_ecb_encrypt(m, key)
+        self.assertEqual(ciphertext, c)
+
+if __name__ == '__main__':
+    unittest.main()
