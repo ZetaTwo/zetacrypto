@@ -1,7 +1,6 @@
 __author__ = 'Calle'
 import unittest
 
-import base64
 from zetacrypt import ciphers, conversions, utility
 
 
@@ -37,7 +36,7 @@ class TestModernCiphersFunctions(unittest.TestCase):
     def test_aes_128_cbc(self):
         target = "I'm back and I'm ringin' the bell \nA rockin' on "
 
-        ciphertext = base64.b64decode(utility.readfile('data/test_aes_cbc_128.txt'))
+        ciphertext = conversions.base64_to_bytes(utility.readfile('data/test_aes_cbc_128.txt'))
         plaintext = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
         plaintext = conversions.bytes_to_ascii(plaintext)
         self.assertEqual(target, plaintext)

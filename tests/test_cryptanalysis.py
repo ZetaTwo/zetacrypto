@@ -1,7 +1,7 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 import unittest
 
-import base64, string
+import string
 from zetacrypt import cryptanalysis, conversions, utility
 
 
@@ -68,7 +68,7 @@ class TextXorFunctions(unittest.TestCase):
 class TestVigenereFunctions(unittest.TestCase):
     def test_find_vigenere_key_len(self):
         ciphertext = utility.readfile('data/vigenere1.txt')
-        ciphertext = base64.b64decode(ciphertext)
+        ciphertext = conversions.base64_to_bytes(ciphertext)
 
         keysize = cryptanalysis.find_vigenere_key_len(ciphertext, 2, 40)
         self.assertEqual(29, keysize)
@@ -76,7 +76,7 @@ class TestVigenereFunctions(unittest.TestCase):
     def test_find_vigenere_key(self):
         target = conversions.ascii_to_bytes("Terminator X: Bring the noise")
         ciphertext = utility.readfile('data/vigenere1.txt')
-        ciphertext = base64.b64decode(ciphertext)
+        ciphertext = conversions.base64_to_bytes(ciphertext)
 
         keysize = 29
         key = cryptanalysis.find_vigenere_key(ciphertext, keysize)

@@ -21,12 +21,16 @@ class TestConversionFunctions(unittest.TestCase):
     def test_bytes_to_ascii(self):
         self.assertEqual(self.ASCII_TEST, conversions.bytes_to_ascii(self.BYTE_TEST))
 
-    def set1_problem1(self):
-        """Set 1 problem 1"""
-        input_ascii = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t"
-        target_hex = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
-        self.assertEqual(target_hex, conversions.ascii_to_hex(input_ascii))
+    def test_base64_to_bytes(self):
+        plaintext = "abcde"
+        base64 = "YWJjZGU="
+        self.assertEqual(conversions.ascii_to_bytes(plaintext), conversions.base64_to_bytes(base64))
 
+    def test_bytes_to_base64(self):
+        plaintext = "abcde"
+        plaintext = conversions.ascii_to_bytes(plaintext)
+        base64 = "YWJjZGU="
+        self.assertEqual(base64, conversions.bytes_to_base64(plaintext))
 
 if __name__ == '__main__':
     unittest.main()
