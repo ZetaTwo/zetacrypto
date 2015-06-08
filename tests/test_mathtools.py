@@ -28,6 +28,9 @@ class TestMathFunctions(unittest.TestCase):
     def test_rms_error(self):
         self.assertEqual(2, mathtools.rms_error([0, 1, 2], [2, 3, 0]))
 
+    def test_rms_error_dict(self):
+        self.assertEqual(2, mathtools.rms_error_dict({'a': 0, 'b': 1, 'c': 2}, {'a': 2, 'b': 3, 'c': 0}))
+
 
 if __name__ == '__main__':
     unittest.main()
