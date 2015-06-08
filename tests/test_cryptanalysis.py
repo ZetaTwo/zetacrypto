@@ -67,7 +67,7 @@ class TextXorFunctions(unittest.TestCase):
 
 class TestVigenereFunctions(unittest.TestCase):
     def test_find_vigenere_key_len(self):
-        ciphertext = utility.readfile('data/vigenere1.txt')
+        ciphertext = utility.readfile('test_data/vigenere1.txt')
         ciphertext = conversions.base64_to_bytes(ciphertext)
 
         keysize = cryptanalysis.find_vigenere_key_len(ciphertext, 2, 40)
@@ -75,7 +75,7 @@ class TestVigenereFunctions(unittest.TestCase):
 
     def test_find_vigenere_key(self):
         target = conversions.ascii_to_bytes("Terminator X: Bring the noise")
-        ciphertext = utility.readfile('data/vigenere1.txt')
+        ciphertext = utility.readfile('test_data/vigenere1.txt')
         ciphertext = conversions.base64_to_bytes(ciphertext)
 
         keysize = 29

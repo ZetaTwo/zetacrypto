@@ -6,7 +6,7 @@ from zetacrypt import utility
 
 class TestStreamFunctions(unittest.TestCase):
     def test_readfile(self):
-        testdata = utility.readfile('data/testdata1.txt')
+        testdata = utility.readfile('test_data/testdata1.txt')
         self.assertEqual("Hello World!", testdata)
 
     def test_blocks(self):

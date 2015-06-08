@@ -36,7 +36,7 @@ class TestModernCiphersFunctions(unittest.TestCase):
     def test_aes_128_cbc(self):
         target = "I'm back and I'm ringin' the bell \nA rockin' on "
 
-        ciphertext = conversions.base64_to_bytes(utility.readfile('data/test_aes_cbc_128.txt'))
+        ciphertext = conversions.base64_to_bytes(utility.readfile('test_data/test_aes_cbc_128.txt'))
         plaintext = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
         plaintext = conversions.bytes_to_ascii(plaintext)
         self.assertEqual(target, plaintext)
