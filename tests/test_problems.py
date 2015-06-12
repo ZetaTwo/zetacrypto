@@ -152,6 +152,7 @@ class TestSet2Problems(unittest.TestCase):
             self.assertEqual(real, guess)
 
     def test_problem12(self):
+        """Byte-at-a-time ECB decryption (Simple)"""
         plaintext = utility.readfile('data/12.txt')
         plaintext = conversions.base64_to_bytes(plaintext)
 
@@ -168,6 +169,23 @@ class TestSet2Problems(unittest.TestCase):
         message = ciphers.pkcs7_strip(message)
         self.assertEqual(plaintext, message)
         print(conversions.bytes_to_ascii(message))
+
+    def test_problem15(self):
+        """PKCS#7 padding validation"""
+        blocklen = 10
+        ciphertext1 = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        self.assertTrue(ciphers.pkcs7_verify(ciphertext1, blocklen))
+
+        ciphertext2 = b"YELLOW SUBMARINE\x05\x05\x05\x05"
+        self.assertFalse(ciphers.pkcs7_verify(ciphertext2, blocklen))
+
+        ciphertext3 = b"YELLOW SUBMARIN\x04\x04\x04\x04"
+        self.assertFalse(ciphers.pkcs7_verify(ciphertext3, blocklen))
+
+        plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
+        ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        m = ciphers.pkcs7_strip(ciphertext)
+        self.assertEqual(plaintext, m)
 
 if __name__ == '__main__':
     unittest.main()

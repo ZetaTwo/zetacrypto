@@ -41,6 +41,7 @@ class TestPrepareFunctions(unittest.TestCase):
         self.assertEqual(ciphertext, c2)
 
     def test_pkcs7_verify(self):
+        """Set 2 Problem 7"""
         blocklen = 10
         ciphertext1 = b"YELLOW SUBMARINE\x04\x04\x04\x04"
         self.assertTrue(ciphers.pkcs7_verify(ciphertext1, blocklen))
@@ -52,6 +53,7 @@ class TestPrepareFunctions(unittest.TestCase):
         self.assertFalse(ciphers.pkcs7_verify(ciphertext3, blocklen))
 
     def test_pkcs7_strip(self):
+        """Set 2 Problem 7"""
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
         ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
         m = ciphers.pkcs7_strip(ciphertext)
