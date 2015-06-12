@@ -89,3 +89,15 @@ def black_box1(plaintext, answer=False):
         return c, mode
     else:
         return c
+
+class BlackBox2:
+    BLOCKLEN = 16
+
+    def __init__(self, ciphertext):
+        self.ciphertext = ciphertext
+        self.key = generate_key(self.BLOCKLEN)
+
+    def __call__(self, plaintext):
+        m = pkcs7_pad(plaintext + self.ciphertext, self.BLOCKLEN)
+        return aes_128_ecb_encrypt(m, self.key)
+

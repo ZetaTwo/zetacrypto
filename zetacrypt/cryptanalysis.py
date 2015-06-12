@@ -102,19 +102,64 @@ def find_vigenere_key(cipher, keylen):
         key.append(k)
     return bytes(key)
 
-
-def detect_ecb(ciphertext):
-    block_size = 16
+def count_repeated_blocks(ciphertext, block_size):
     blocks = Counter(utility.chunks(ciphertext, block_size))
-    count = blocks.most_common(1)[0][1]
-    return count > 1
+    return blocks.most_common(1)[0][1]
+
+def detect_ecb(ciphertext, block_size):
+    return count_repeated_blocks(ciphertext, block_size) > 1
 
 
-def encryption_detection_oracle_ecb_cbc(oracle, answer=False):
+def encryption_detection_oracle_ecb_cbc(oracle, blocklen, answer=False):
     plaintext = conversions.ascii_to_bytes("A" * (16 * 3))
     if answer:  # If black box supports it, leak real answer
         c, ans = oracle(plaintext, True)
-        return detect_ecb(c), ans
+        return detect_ecb(c, blocklen), ans
     else:  # Otherwise, just return guess
         c = oracle(plaintext)
-        return detect_ecb(c)
+        return detect_ecb(c, blocklen)
+
+def find_ecb_block_length(blackbox):
+    """Finds out the block length of a ECB encryption function."""
+    # Find start of new block
+    secret_len = len(blackbox(b""))
+    for block_start_cand in range(256):
+        newlen = len(blackbox(b"A" * block_start_cand))
+        if newlen > secret_len:
+            baseline = newlen
+            block_start = block_start_cand
+            break
+
+    # Find block len
+    for block_len_cand in range(256):
+        newlen = len(blackbox(b"A" * (block_len_cand + block_start)))
+        if newlen > baseline:
+            return block_len_cand
+
+def decrypt_ecb_postfix(blackbox, block_size):
+    """Decrypts the postfix part of an ECB like encryption function"""
+
+    # Number of blocks to decrypt
+    secret_len = len(blackbox(b""))
+    secret_blocks = (secret_len + block_size - 1) // block_size
+
+    # For each block
+    message = bytes()
+    for block in range(secret_blocks):
+        # For each element in the block
+        for element in range(block_size):
+            # Calculate target block
+            block_base = (block_size - element - 1) * b"A"
+            block_cipher_base = blackbox(block_base)[:(block + 1) * block_size]
+
+            # Try all bytes to get matching block
+            for b in range(BYTE_MAX):
+                guess_byte = bytes([b])
+                block_guess = block_base + message + guess_byte
+                block_cipher_guess = blackbox(block_guess)[:(block + 1) * block_size]
+
+                # Append to message and move to next element
+                if block_cipher_base == block_cipher_guess:
+                    message += guess_byte
+                    break
+    return message

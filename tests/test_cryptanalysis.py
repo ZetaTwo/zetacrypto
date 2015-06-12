@@ -84,6 +84,7 @@ class TestVigenereFunctions(unittest.TestCase):
 
 class TextModernCryptoFunctions(unittest.TestCase):
     def test_detect_ecb(self):
+        blocklen = 16
         target_index = 132
         found_index = -1
         with open('data/8.txt') as cipherfile:
@@ -91,7 +92,7 @@ class TextModernCryptoFunctions(unittest.TestCase):
             for hexline in cipherfile:
                 hexline = hexline.strip()
                 byteline = conversions.bytes_to_ascii(conversions.hex_to_bytes(hexline))
-                if cryptanalysis.detect_ecb(byteline):
+                if cryptanalysis.detect_ecb(byteline, blocklen):
                     found_index = i
                     break
                 i += 1
@@ -99,9 +100,29 @@ class TextModernCryptoFunctions(unittest.TestCase):
         self.assertEqual(target_index, found_index)
 
     def test_ecb_cbc_oracle(self):
+        blocklen = 16
         for i in range(100):
-            guess, real = cryptanalysis.encryption_detection_oracle_ecb_cbc(ciphers.black_box1, True)
+            guess, real = cryptanalysis.encryption_detection_oracle_ecb_cbc(ciphers.black_box1, blocklen, True)
             self.assertEqual(real, guess)
+
+    def test_ecb_find_block_length(self):
+        plaintext = utility.readfile('data/12.txt')
+        plaintext = conversions.base64_to_bytes(plaintext)
+        bb = ciphers.BlackBox2(plaintext)
+
+        self.assertEqual(16, cryptanalysis.find_ecb_block_length(bb))
+
+    def test_decrypt_ecb_postfix(self):
+        blocklen = 16
+        plaintext = utility.readfile('data/12.txt')
+        plaintext = conversions.base64_to_bytes(plaintext)
+        bb = ciphers.BlackBox2(plaintext)
+
+        message = cryptanalysis.decrypt_ecb_postfix(bb, blocklen)
+        message = ciphers.pkcs7_strip(message)
+
+        self.assertEqual(plaintext, message)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -101,6 +101,7 @@ class TestSet1Problems(unittest.TestCase):
 
     def test_problem8(self):
         """Detect AES in ECB mode"""
+        blocklen = 16
         target_index = 132
         found_index = -1
         with open('data/8.txt') as cipherfile:
@@ -108,7 +109,7 @@ class TestSet1Problems(unittest.TestCase):
             for hexline in cipherfile:
                 hexline = hexline.strip()
                 byteline = conversions.bytes_to_ascii(conversions.hex_to_bytes(hexline))
-                if cryptanalysis.detect_ecb(byteline):
+                if cryptanalysis.detect_ecb(byteline, blocklen):
                     found_index = i
                     break
                 i += 1
@@ -145,9 +146,28 @@ class TestSet2Problems(unittest.TestCase):
 
     def test_problem11(self):
         """An ECB/CBC detection oracle"""
+        blocklen = 16
         for i in range(100):
-            guess, real = cryptanalysis.encryption_detection_oracle_ecb_cbc(ciphers.black_box1, True)
+            guess, real = cryptanalysis.encryption_detection_oracle_ecb_cbc(ciphers.black_box1, blocklen, True)
             self.assertEqual(real, guess)
+
+    def test_problem12(self):
+        plaintext = utility.readfile('data/12.txt')
+        plaintext = conversions.base64_to_bytes(plaintext)
+
+        # Find block length
+        blackbox = ciphers.BlackBox2(plaintext)
+        block_len = cryptanalysis.find_ecb_block_length(blackbox)
+        self.assertEqual(16, block_len)
+
+        # Detect ECB
+        self.assertTrue(cryptanalysis.detect_ecb(blackbox(b"A" * 2 * block_len), block_len))
+
+        # Decode message
+        message = cryptanalysis.decrypt_ecb_postfix(blackbox, block_len)
+        message = ciphers.pkcs7_strip(message)
+        self.assertEqual(plaintext, message)
+        print(conversions.bytes_to_ascii(message))
 
 if __name__ == '__main__':
     unittest.main()
