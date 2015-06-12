@@ -15,15 +15,20 @@ def xor_seq_key(seq, key):
     return map(lambda x: x[0] ^ x[1], zip(itertools.cycle(key), seq))
 
 def pkcs7_pad(seq, blocklen):
+    """Pad seq to a length which is an integer multiple of blocklen by the PKCS#7 standard"""
     padlen = blocklen - (len(seq) % blocklen)
     assert padlen >= 0
     return seq + bytes([padlen]*padlen)
 
-def pkcs7_verify(seq):
+def pkcs7_verify(seq, blocklen):
+    """Verifies that seq is a properly padded PKCS#7 sequence"""
     padlen = seq[-1]
-    return len(seq) >= padlen and all(map(lambda x: x == padlen, seq[-padlen:]))
+    return (len(seq) % blocklen == 0) \
+           and len(seq) >= padlen \
+           and all(map(lambda x: x == padlen, seq[-padlen:]))
 
 def pkcs7_strip(seq):
+    """Strips away the PKCS#7 padding from seq"""
     padlen = seq[-1]
     return seq[:-padlen]
 

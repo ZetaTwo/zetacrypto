@@ -88,12 +88,13 @@ class TestSet1Problems(unittest.TestCase):
 
     def test_problem7(self):
         """AES in ECB mode"""
+        blocklen = 16
         key = "YELLOW SUBMARINE"
         plaintext = utility.readfile('data/play_that_funky_music.txt')
         ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
 
         m = ciphers.aes_128_ecb_decrypt(ciphertext, key)
-        self.assertTrue(ciphers.pkcs7_verify(m))
+        self.assertTrue(ciphers.pkcs7_verify(m, blocklen))
         m = ciphers.pkcs7_strip(m)
         m = conversions.bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
@@ -129,6 +130,7 @@ class TestSet2Problems(unittest.TestCase):
 
     def test_problem10(self):
         """Implement CBC mode"""
+        blocklen = 16
         plaintext = utility.readfile('data/play_that_funky_music.txt')
         ciphertext = conversions.base64_to_bytes(utility.readfile('data/10.txt'))
 
@@ -136,7 +138,7 @@ class TestSet2Problems(unittest.TestCase):
         m = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
 
         # Verify padding and content
-        self.assertTrue(ciphers.pkcs7_verify(m))
+        self.assertTrue(ciphers.pkcs7_verify(m, blocklen))
         m = ciphers.pkcs7_strip(m)
         m = conversions.bytes_to_ascii(m)
         self.assertEqual(plaintext, m)

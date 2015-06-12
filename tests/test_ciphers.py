@@ -41,10 +41,15 @@ class TestPrepareFunctions(unittest.TestCase):
         self.assertEqual(ciphertext, c2)
 
     def test_pkcs7_verify(self):
+        blocklen = 10
         ciphertext1 = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        self.assertTrue(ciphers.pkcs7_verify(ciphertext1, blocklen))
+
         ciphertext2 = b"YELLOW SUBMARINE\x05\x05\x05\x05"
-        self.assertTrue(ciphers.pkcs7_verify(ciphertext1))
-        self.assertFalse(ciphers.pkcs7_verify(ciphertext2))
+        self.assertFalse(ciphers.pkcs7_verify(ciphertext2, blocklen))
+
+        ciphertext3 = b"YELLOW SUBMARIN\x04\x04\x04\x04"
+        self.assertFalse(ciphers.pkcs7_verify(ciphertext3, blocklen))
 
     def test_pkcs7_strip(self):
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
@@ -69,12 +74,13 @@ class TestModernCiphersFunctions(unittest.TestCase):
         self.assertEqual(ciphertext, c)
 
     def test_aes_128_ecb_decrypt(self):
+        blocklen = 16
         key = "YELLOW SUBMARINE"
         plaintext = utility.readfile('data/play_that_funky_music.txt')
         ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
 
         m = ciphers.aes_128_ecb_decrypt(ciphertext, key)
-        self.assertTrue(ciphers.pkcs7_verify(m))
+        self.assertTrue(ciphers.pkcs7_verify(m, blocklen))
         m = ciphers.pkcs7_strip(m)
         m = conversions.bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
