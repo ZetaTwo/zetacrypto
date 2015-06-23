@@ -3,7 +3,11 @@ import itertools
 
 from Crypto.Cipher import AES
 from random import randint
-from . import utility
+from urllib.parse import urlencode, parse_qs
+from collections import OrderedDict
+from . import utility, conversions
+import re
+
 
 def xor_seq_byte(seq, key):
     """Returns seq XOR:ed with single byte key"""
@@ -14,11 +18,13 @@ def xor_seq_key(seq, key):
     """Returns seq XOR:ed with key repeated to cover all of seq"""
     return map(lambda x: x[0] ^ x[1], zip(itertools.cycle(key), seq))
 
+
 def pkcs7_pad(seq, blocklen):
     """Pad seq to a length which is an integer multiple of blocklen by the PKCS#7 standard"""
     padlen = blocklen - (len(seq) % blocklen)
     assert padlen >= 0
-    return seq + bytes([padlen]*padlen)
+    return seq + bytes([padlen] * padlen)
+
 
 def pkcs7_verify(seq, blocklen):
     """Verifies that seq is a properly padded PKCS#7 sequence"""
@@ -27,18 +33,22 @@ def pkcs7_verify(seq, blocklen):
            and len(seq) >= padlen \
            and all(map(lambda x: x == padlen, seq[-padlen:]))
 
+
 def pkcs7_strip(seq):
     """Strips away the PKCS#7 padding from seq"""
     padlen = seq[-1]
     return seq[:-padlen]
 
+
 def aes_128_ecb_encrypt(plaintext, key):
     aes = AES.new(key, AES.MODE_ECB)
     return aes.encrypt(plaintext)
 
+
 def aes_128_ecb_decrypt(ciphertext, key):
     aes = AES.new(key, AES.MODE_ECB)
     return aes.decrypt(ciphertext)
+
 
 def aes_128_cbc_encrypt(plaintext, key, iv):
     aes = AES.new(key, AES.MODE_ECB)
@@ -54,6 +64,7 @@ def aes_128_cbc_encrypt(plaintext, key, iv):
 
     return bytes(cipertext)
 
+
 def aes_128_cbc_decrypt(cipher, key, iv):
     assert len(iv) == len(key) == 16
     aes = AES.new(key, AES.MODE_ECB)
@@ -66,6 +77,7 @@ def aes_128_cbc_decrypt(cipher, key, iv):
         prev = block
 
     return plaintext
+
 
 def generate_key(keylen):
     return bytes([randint(0, 255) for _ in range(keylen)])
@@ -90,6 +102,7 @@ def black_box1(plaintext, answer=False):
     else:
         return c
 
+
 class BlackBox2:
     BLOCKLEN = 16
 
@@ -101,3 +114,30 @@ class BlackBox2:
         m = pkcs7_pad(plaintext + self.ciphertext, self.BLOCKLEN)
         return aes_128_ecb_encrypt(m, self.key)
 
+
+class ProfileEncoder1:
+    BLOCKLEN = 16
+
+    def __init__(self):
+        self.key = generate_key(self.BLOCKLEN)
+        self.next_user_id = 0
+
+    def create_profile(self, email):
+        email = re.sub('[=&]', '', email)
+        self.next_user_id += 1
+        return 'email=' + email + '&uid=' + str(self.next_user_id) + '&role=user'
+
+    def profile_for(self, email):
+        m = pkcs7_pad(conversions.ascii_to_bytes(self.create_profile(email)), self.BLOCKLEN)
+        return aes_128_ecb_encrypt(m, self.key)
+
+    @staticmethod
+    def parse_profile(profile_string):
+        return {k: v[0] for (k, v) in parse_qs(profile_string).items()}
+
+    def parse_ciphertext(self, ciphertext):
+        profile_string = aes_128_ecb_decrypt(ciphertext, self.key)
+        if not pkcs7_verify(profile_string, self.BLOCKLEN):
+            return None
+        profile_string = conversions.bytes_to_ascii(pkcs7_strip(profile_string))
+        return self.parse_profile(profile_string)

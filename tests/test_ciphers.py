@@ -2,6 +2,7 @@ __author__ = 'Calle'
 import unittest
 
 from zetacrypt import ciphers, conversions, utility
+from collections import OrderedDict
 
 
 class TestXORFunctions(unittest.TestCase):
@@ -95,6 +96,30 @@ class TestModernCiphersFunctions(unittest.TestCase):
         m = ciphers.pkcs7_pad(plaintext, 16)
         c = ciphers.aes_128_ecb_encrypt(m, key)
         self.assertEqual(ciphertext, c)
+
+class TestProblemSpecificCiphers(unittest.TestCase):
+    def test_profile_encoder(self):
+        encoder = ciphers.ProfileEncoder1()
+
+        user = {
+            'email': 'foo@bar.com',
+            'uid': '1',
+            'role': 'user'
+        }
+
+        user2 = {
+            'email': 'foo@bar.comroleadmin',
+            'uid': '2',
+            'role': 'user'
+        }
+
+        user_string = encoder.create_profile('foo@bar.com')
+        self.assertEqual('email=foo@bar.com&uid=1&role=user', user_string)
+        self.assertEqual(user, encoder.parse_profile(user_string))
+
+        user2_string = encoder.create_profile('foo@bar.com&role=admin')
+        self.assertEqual('email=foo@bar.comroleadmin&uid=2&role=user', user2_string)
+        self.assertEqual(user2, encoder.parse_profile(user2_string))
 
 if __name__ == '__main__':
     unittest.main()

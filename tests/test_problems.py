@@ -170,6 +170,22 @@ class TestSet2Problems(unittest.TestCase):
         self.assertEqual(plaintext, message)
         print(conversions.bytes_to_ascii(message))
 
+    def test_problem13(self):
+        """ECB cut-and-paste"""
+        enc = ciphers.ProfileEncoder1()
+
+        profile1 = enc.profile_for('aaaaaaaaaa' + str(ciphers.pkcs7_pad(conversions.ascii_to_bytes('admin'), enc.BLOCKLEN), 'ascii') + '@b.com')
+        admin_block = profile1[1*enc.BLOCKLEN:2*enc.BLOCKLEN]
+
+        profile2 = enc.profile_for('l33t_h4cker_sk1ll@zeta-two.com')
+        profile_blocks = profile2[:3*enc.BLOCKLEN]
+
+        profile3 = profile_blocks + admin_block
+        admin = enc.parse_ciphertext(profile3)
+
+        print(admin)
+        self.assertEqual('admin', admin['role'])
+
     def test_problem15(self):
         """PKCS#7 padding validation"""
         blocklen = 10
