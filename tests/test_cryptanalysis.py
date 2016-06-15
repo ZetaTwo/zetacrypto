@@ -37,6 +37,10 @@ class TestTextFunctions(unittest.TestCase):
         freq = cryptanalysis.letter_frequency_rel(data)
         self.assertEqual(target, freq)
 
+    def test_letter_freq_rel_empty(self):
+        data = ""
+        freq = cryptanalysis.letter_frequency_rel(data)
+
     def test_index_coincidence(self):
         text = "QPWKALVRXCQZIKGRBPFAEOMFLJMSDZVDHXCXJYEBIMTRQWNMEAIZRVKCVKVLXNEICFZPZCZZHKMLVZVZIZRRQWDKECHOSNYXXLSPMYKVQXJTDCIOMEEXDQVSRXLRLKZHOV"
         ic5 = 1.82
