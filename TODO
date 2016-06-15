@@ -1,0 +1,7 @@
+* Separate cryptanalysis into
+  - Generator, which generates candidates
+  - Tester, which applies statistical test and picks the winner(s)
+  - Test, which performs a statistical measure on the candidate
+
+  - Example: Vigénere classical vs XOR
+             Affine cipher
