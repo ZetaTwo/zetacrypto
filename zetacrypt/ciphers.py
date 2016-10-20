@@ -1,15 +1,19 @@
+from __future__ import unicode_literals
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 from future.standard_library import install_aliases
+from future.utils import tobytes, bord
 install_aliases()
-from builtins import bytes, str
+from builtins import bytes, str, filter, map
 
 import itertools
+import struct
 
 from Crypto.Cipher import AES
 from random import randint
 from urllib.parse import parse_qs
 from collections import OrderedDict
-from . import utility, conversions
+from . import utility
+from .conversions import *
 import re
 
 
@@ -32,6 +36,7 @@ def pkcs7_pad(seq, blocklen):
 
 def pkcs7_verify(seq, blocklen):
     """Verifies that seq is a properly padded PKCS#7 sequence"""
+    print(type(seq))
     assert(type(seq) == bytes)
     padlen = seq[-1]
     return (len(seq) % blocklen == 0) \
@@ -41,13 +46,15 @@ def pkcs7_verify(seq, blocklen):
 
 def pkcs7_strip(seq):
     """Strips away the PKCS#7 padding from seq"""
+    #padlen = bytearray([seq[-1]])[0] #TODO: Really ugly way to support both Py2 & 3
+    #print(type(seq))
     padlen = seq[-1]
     return seq[:-padlen]
 
 
 def aes_128_ecb_encrypt(plaintext, key):
     aes = AES.new(key, AES.MODE_ECB)
-    return aes.encrypt(bytes(plaintext))
+    return aes.encrypt(plaintext)
 
 
 def aes_128_ecb_decrypt(ciphertext, key):
@@ -58,12 +65,14 @@ def aes_128_ecb_decrypt(ciphertext, key):
 def aes_128_cbc_encrypt(plaintext, key, iv):
     aes = AES.new(key, AES.MODE_ECB)
     assert len(iv) == len(key) == 16
+    assert type(iv) == bytes
+    assert type(plaintext) == bytes
 
     cipertext = []
     prev = iv
     for block in utility.chunks(plaintext, 16):
-        m = xor_seq_key(block, prev)
-        c = aes.encrypt(bytes(m))
+        m = iterator_to_bytes(xor_seq_key(block, prev))
+        c = bytes(aes.encrypt(m))
         cipertext += c
         prev = c
 
@@ -73,15 +82,15 @@ def aes_128_cbc_encrypt(plaintext, key, iv):
 def aes_128_cbc_decrypt(cipher, key, iv):
     assert len(iv) == len(key) == 16
     assert type(cipher) == bytes
-    #assert type(key) == bytes
-
+    assert type(iv) == bytes
+    
     aes = AES.new(key, AES.MODE_ECB)
 
     plaintext = bytes()
     prev = iv
     for block in utility.chunks(cipher, 16):
-        dec = aes.decrypt(block)
-        plaintext += bytes(xor_seq_key(dec, prev))
+        dec = bytes(aes.decrypt(block))
+        plaintext += iterator_to_bytes(xor_seq_key(dec, prev))
         prev = block
 
     return plaintext
@@ -136,7 +145,7 @@ class ProfileEncoder1:
         return 'email=' + email + '&uid=' + str(self.next_user_id) + '&role=user'
 
     def profile_for(self, email):
-        m = pkcs7_pad(conversions.ascii_to_bytes(self.create_profile(email)), self.BLOCKLEN)
+        m = pkcs7_pad(tobytes(self.create_profile(email)), self.BLOCKLEN)
         return aes_128_ecb_encrypt(m, self.key)
 
     @staticmethod
@@ -147,5 +156,5 @@ class ProfileEncoder1:
         profile_string = aes_128_ecb_decrypt(ciphertext, self.key)
         if not pkcs7_verify(profile_string, self.BLOCKLEN):
             return None
-        profile_string = conversions.bytes_to_ascii(pkcs7_strip(profile_string))
+        profile_string = bytes_to_ascii(pkcs7_strip(profile_string))
         return self.parse_profile(profile_string)

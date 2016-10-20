@@ -1,8 +1,9 @@
 __author__ = 'Calle'
-from builtins import bytes, str
+from builtins import bytes, str, filter, map
 import unittest
 
-from zetacrypt import conversions, utility, ciphers, cryptanalysis, INF
+from zetacrypt.conversions import *
+from zetacrypt import utility, ciphers, cryptanalysis, INF
 from Crypto.Cipher import AES
 from collections import Counter
 
@@ -15,22 +16,22 @@ class TestSet1Problems(unittest.TestCase):
         targettext = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t"
         plaintext = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
 
-        res = str(conversions.bytes_to_base64(conversions.hex_to_bytes(plaintext)))
+        res = str(bytes_to_base64(hex_to_bytes(plaintext)))
         self.assertEqual(targettext, res)
 
     def test_problem2(self):
         """Fixed XOR"""
         ciphertext = "746865206b696420646f6e277420706c6179"
-        key = conversions.hex_to_bytes("686974207468652062756c6c277320657965")
-        plaintext = conversions.hex_to_bytes("1c0111001f010100061a024b53535009181c")
+        key = hex_to_bytes("686974207468652062756c6c277320657965")
+        plaintext = hex_to_bytes("1c0111001f010100061a024b53535009181c")
 
-        res = ciphers.xor_seq_key(plaintext, key)
-        res = conversions.bytes_to_hex(res)
+        res = iterator_to_bytes(ciphers.xor_seq_key(plaintext, key))
+        res = bytes_to_hex(res)
         self.assertEqual(ciphertext, res)
 
     def test_problem3(self):
         """Single-byte XOR cipher"""
-        ciphertext = conversions.hex_to_bytes("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
+        ciphertext = hex_to_bytes("1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736")
         plaintext = "Cooking MC's like a pound of bacon"
         key = 88
 
@@ -46,7 +47,7 @@ class TestSet1Problems(unittest.TestCase):
             best = 'FAIL'
             best_dist = INF
             for hexline in cipherfile:
-                byteline = conversions.hex_to_bytes(hexline.strip())
+                byteline = hex_to_bytes(hexline.strip())
                 m, key, dist = cryptanalysis.find_single_byte_xor_key(byteline)
                 if dist < best_dist:
                     best = m
@@ -56,25 +57,25 @@ class TestSet1Problems(unittest.TestCase):
 
     def test_problem5(self):
         """Implement repeating-key XOR"""
-        plaintext = conversions.ascii_to_bytes(
+        plaintext = ascii_to_bytes(
             "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal")
-        key = conversions.ascii_to_bytes("ICE")
+        key = ascii_to_bytes("ICE")
         ciphertext = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272" \
                      "a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
 
-        res = ciphers.xor_seq_key(plaintext, key)
-        res = conversions.bytes_to_hex(res)
+        res = iterator_to_bytes(ciphers.xor_seq_key(plaintext, key))
+        res = bytes_to_hex(res)
         self.assertEqual(ciphertext, res)
 
     def test_problem6(self):
         """Break repeating-key XOR"""
         target_keylen = 29
-        target_key = conversions.ascii_to_bytes("Terminator X: Bring the noise")
+        target_key = ascii_to_bytes("Terminator X: Bring the noise")
         plaintext = utility.readfile('data/play_that_funky_music.txt')
 
         # Read input
         ciphertext = utility.readfile('data/6.txt')
-        ciphertext = conversions.base64_to_bytes(ciphertext)
+        ciphertext = base64_to_bytes(ciphertext)
 
         # Decrypt
         keysize = cryptanalysis.find_vigenere_key_len(ciphertext, 2, 40)
@@ -83,8 +84,8 @@ class TestSet1Problems(unittest.TestCase):
         key = cryptanalysis.find_vigenere_key(ciphertext, keysize)
         self.assertEqual(target_key, key)
 
-        m = ciphers.xor_seq_key(ciphertext, key)
-        m = conversions.bytes_to_ascii(bytes(m))
+        m = iterator_to_bytes(ciphers.xor_seq_key(ciphertext, key))
+        m = bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
 
     def test_problem7(self):
@@ -92,12 +93,12 @@ class TestSet1Problems(unittest.TestCase):
         blocklen = 16
         key = "YELLOW SUBMARINE"
         plaintext = utility.readfile('data/play_that_funky_music.txt')
-        ciphertext = conversions.base64_to_bytes(utility.readfile('data/7.txt'))
+        ciphertext = base64_to_bytes(utility.readfile('data/7.txt'))
 
         m = ciphers.aes_128_ecb_decrypt(ciphertext, key)
         self.assertTrue(ciphers.pkcs7_verify(m, blocklen))
         m = ciphers.pkcs7_strip(m)
-        m = conversions.bytes_to_ascii(m)
+        m = bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
 
     def test_problem8(self):
@@ -109,7 +110,7 @@ class TestSet1Problems(unittest.TestCase):
             i = 0
             for hexline in cipherfile:
                 hexline = hexline.strip()
-                byteline = conversions.hex_to_bytes(hexline)
+                byteline = hex_to_bytes(hexline)
                 if cryptanalysis.detect_ecb(byteline, blocklen):
                     found_index = i
                     break
@@ -123,10 +124,10 @@ class TestSet2Problems(unittest.TestCase):
 
     def test_problem9(self):
         """Implement PKCS#7 padding"""
-        plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
+        plaintext = ascii_to_bytes("YELLOW SUBMARINE")
         ciphertext = "YELLOW SUBMARINE\x04\x04\x04\x04"
         c = ciphers.pkcs7_pad(plaintext, 20)
-        c = conversions.bytes_to_ascii(c)
+        c = bytes_to_ascii(c)
 
         self.assertEqual(ciphertext, c)
 
@@ -134,15 +135,16 @@ class TestSet2Problems(unittest.TestCase):
         """Implement CBC mode"""
         blocklen = 16
         plaintext = utility.readfile('data/play_that_funky_music.txt')
-        ciphertext = conversions.base64_to_bytes(utility.readfile('data/10.txt'))
+
+        ciphertext = base64_to_bytes(utility.readfile('data/10.txt'))
 
         # Decrypt
-        m = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", conversions.hex_to_bytes("00000000000000000000000000000000"))
+        m = ciphers.aes_128_cbc_decrypt(ciphertext, "YELLOW SUBMARINE", hex_to_bytes("00000000000000000000000000000000"))
 
         # Verify padding and content
         self.assertTrue(ciphers.pkcs7_verify(m, blocklen))
         m = ciphers.pkcs7_strip(m)
-        m = conversions.bytes_to_ascii(m)
+        m = bytes_to_ascii(m)
         self.assertEqual(plaintext, m)
 
     def test_problem11(self):
@@ -155,7 +157,7 @@ class TestSet2Problems(unittest.TestCase):
     def test_problem12(self):
         """Byte-at-a-time ECB decryption (Simple)"""
         plaintext = utility.readfile('data/12.txt')
-        plaintext = conversions.base64_to_bytes(plaintext)
+        plaintext = base64_to_bytes(plaintext)
 
         # Find block length
         blackbox = ciphers.BlackBox2(plaintext)
@@ -169,13 +171,13 @@ class TestSet2Problems(unittest.TestCase):
         message = cryptanalysis.decrypt_ecb_postfix(blackbox, block_len)
         message = ciphers.pkcs7_strip(message)
         self.assertEqual(plaintext, message)
-        print(conversions.bytes_to_ascii(message))
+        print(bytes_to_ascii(message))
 
     def test_problem13(self):
         """ECB cut-and-paste"""
         enc = ciphers.ProfileEncoder1()
 
-        profile1 = enc.profile_for('aaaaaaaaaa' + str(ciphers.pkcs7_pad(conversions.ascii_to_bytes('admin'), enc.BLOCKLEN), 'ascii') + '@b.com')
+        profile1 = enc.profile_for('aaaaaaaaaa' + str(ciphers.pkcs7_pad(ascii_to_bytes('admin'), enc.BLOCKLEN), 'ascii') + '@b.com')
         admin_block = profile1[1*enc.BLOCKLEN:2*enc.BLOCKLEN]
 
         profile2 = enc.profile_for('l33t_h4cker_sk1ll@zeta-two.com')
@@ -184,7 +186,6 @@ class TestSet2Problems(unittest.TestCase):
         profile3 = profile_blocks + admin_block
         admin = enc.parse_ciphertext(profile3)
 
-        print(admin)
         self.assertEqual('admin', admin['role'])
 
     def test_problem15(self):
@@ -199,7 +200,7 @@ class TestSet2Problems(unittest.TestCase):
         ciphertext3 = bytes("YELLOW SUBMARIN\x04\x04\x04\x04", 'ascii')
         self.assertFalse(ciphers.pkcs7_verify(ciphertext3, blocklen))
 
-        plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
+        plaintext = ascii_to_bytes("YELLOW SUBMARINE")
         ciphertext = bytes("YELLOW SUBMARINE\x04\x04\x04\x04", 'ascii')
         m = ciphers.pkcs7_strip(ciphertext)
         self.assertEqual(plaintext, m)

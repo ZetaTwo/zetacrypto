@@ -1,4 +1,4 @@
-__author__ = 'Calle'
+__author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 
 
 def readfile(path):

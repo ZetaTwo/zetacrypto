@@ -1,11 +1,14 @@
+from __future__ import division
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
+from builtins import bytes, str, filter, map, range
 
 import string, operator, scipy.stats
 from scipy.stats.distributions import chi2
 from collections import Counter
 
-from . import conversions, utility, mathtools, INF, BYTE_MAX
+from . import utility, mathtools, INF, BYTE_MAX
 from zetacrypt.ciphers import xor_seq_byte
+from zetacrypt.conversions import *
 
 # The relative frequency of alphabet letters in the English language
 # FREQ_ENGLISH = {'e': 0.12575645, 't': 0.9085226, 'a': 0.8000395, 'o': 0.7591270, 'i': 0.6920007, 'n': 0.6903785,
@@ -72,12 +75,12 @@ def find_single_byte_xor_key(seq):
     best_key = 0
     best = "FAIL"
     for key in range(BYTE_MAX):
-        mb = bytes(xor_seq_byte(seq, key))
+        mb = iterator_to_bytes(xor_seq_byte(seq, key))
 
         if not is_printable(mb):
             continue
 
-        m = conversions.bytes_to_ascii(mb)
+        m = bytes_to_ascii(mb)
 
         freq = letter_frequency(m)
         dist = chi_square_letter_freq(freq, get_expected_freq(len(m), FREQ_ENGLISH))
@@ -133,7 +136,7 @@ def detect_ecb(ciphertext, block_size):
 
 
 def encryption_detection_oracle_ecb_cbc(oracle, blocklen, answer=False):
-    plaintext = conversions.ascii_to_bytes("A" * (16 * 3))
+    plaintext = ascii_to_bytes("A" * (16 * 3))
     if answer:  # If black box supports it, leak real answer
         c, ans = oracle(plaintext, True)
         return detect_ecb(c, blocklen), ans

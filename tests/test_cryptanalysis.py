@@ -1,4 +1,5 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
+from builtins import bytes, str, filter, map
 import unittest
 
 import string
@@ -16,6 +17,7 @@ class TestTextFunctions(unittest.TestCase):
 
     def test_is_printable1(self):
         data = conversions.ascii_to_bytes(" amzANZ019%/")
+        print(type(data))
         self.assertTrue(cryptanalysis.is_printable(data))
 
     def test_is_printable2(self):
