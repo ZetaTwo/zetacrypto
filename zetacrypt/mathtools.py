@@ -1,6 +1,6 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 
-import math
+import math, scipy
 
 
 def levenshtein_swap(seq1, seq2):
@@ -42,6 +42,7 @@ def rms_error(seq1, seq2):
 
 def rms_error_dict(dict1, dict2):
     """Returns the RMS error between two dictionaries with the same keys"""
+    assert sorted(dict1.keys()) == sorted(dict2.keys())
     keys = dict1.keys()
     val1 = [dict1[k] for k in keys]
     val2 = [dict2[k] for k in keys]

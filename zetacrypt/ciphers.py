@@ -1,9 +1,13 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
+from future.standard_library import install_aliases
+install_aliases()
+from builtins import bytes, str
+
 import itertools
 
 from Crypto.Cipher import AES
 from random import randint
-from urllib.parse import urlencode, parse_qs
+from urllib.parse import parse_qs
 from collections import OrderedDict
 from . import utility, conversions
 import re
@@ -28,6 +32,7 @@ def pkcs7_pad(seq, blocklen):
 
 def pkcs7_verify(seq, blocklen):
     """Verifies that seq is a properly padded PKCS#7 sequence"""
+    assert(type(seq) == bytes)
     padlen = seq[-1]
     return (len(seq) % blocklen == 0) \
            and len(seq) >= padlen \
@@ -42,12 +47,12 @@ def pkcs7_strip(seq):
 
 def aes_128_ecb_encrypt(plaintext, key):
     aes = AES.new(key, AES.MODE_ECB)
-    return aes.encrypt(plaintext)
+    return aes.encrypt(bytes(plaintext))
 
 
 def aes_128_ecb_decrypt(ciphertext, key):
     aes = AES.new(key, AES.MODE_ECB)
-    return aes.decrypt(ciphertext)
+    return bytes(aes.decrypt(ciphertext))
 
 
 def aes_128_cbc_encrypt(plaintext, key, iv):
@@ -57,8 +62,8 @@ def aes_128_cbc_encrypt(plaintext, key, iv):
     cipertext = []
     prev = iv
     for block in utility.chunks(plaintext, 16):
-        m = bytes(xor_seq_key(block, prev))
-        c = aes.encrypt(m)
+        m = xor_seq_key(block, prev)
+        c = aes.encrypt(bytes(m))
         cipertext += c
         prev = c
 
@@ -67,13 +72,16 @@ def aes_128_cbc_encrypt(plaintext, key, iv):
 
 def aes_128_cbc_decrypt(cipher, key, iv):
     assert len(iv) == len(key) == 16
+    assert type(cipher) == bytes
+    #assert type(key) == bytes
+
     aes = AES.new(key, AES.MODE_ECB)
 
-    plaintext = []
+    plaintext = bytes()
     prev = iv
     for block in utility.chunks(cipher, 16):
         dec = aes.decrypt(block)
-        plaintext += xor_seq_key(dec, prev)
+        plaintext += bytes(xor_seq_key(dec, prev))
         prev = block
 
     return plaintext

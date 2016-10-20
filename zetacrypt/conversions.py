@@ -1,4 +1,5 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
+from builtins import bytes, str
 import binascii, base64
 
 
@@ -16,7 +17,8 @@ def bytes_to_hex(seq):
 
 def bytes_to_ascii(seq):
     """Converts seq from byte array to ASCII string"""
-    return ''.join(map(chr, seq))
+    #return ''.join(map(chr, seq))
+    return str(seq, 'ascii')
 
 def base64_to_bytes(seq):
     """Converts seq from ASCII base 64 encoding to byte array"""

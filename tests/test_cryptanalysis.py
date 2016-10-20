@@ -6,6 +6,10 @@ from zetacrypt import cryptanalysis, ciphers, conversions, utility
 
 
 class TestTextFunctions(unittest.TestCase):
+    def test_english_letter_freq(self):
+        norm = sum(cryptanalysis.FREQ_ENGLISH.values())
+        self.assertAlmostEqual(norm, 1.0)
+
     def test_count_printable(self):
         data = conversions.ascii_to_bytes(" amzANZ019%/")
         self.assertEqual(12, cryptanalysis.count_printable(data))
@@ -37,9 +41,15 @@ class TestTextFunctions(unittest.TestCase):
         freq = cryptanalysis.letter_frequency_rel(data)
         self.assertEqual(target, freq)
 
+        target['a'] = 0.25
+        target['m'] = 0.25
+        data = "amamam______"
+        freq = cryptanalysis.letter_frequency_rel(data)
+        self.assertEqual(target, freq)
+
     def test_letter_freq_rel_empty(self):
         data = ""
-        freq = cryptanalysis.letter_frequency_rel(data)
+        cryptanalysis.letter_frequency_rel(data)
 
     def test_index_coincidence(self):
         text = "QPWKALVRXCQZIKGRBPFAEOMFLJMSDZVDHXCXJYEBIMTRQWNMEAIZRVKCVKVLXNEICFZPZCZZHKMLVZVZIZRRQWDKECHOSNYXXLSPMYKVQXJTDCIOMEEXDQVSRXLRLKZHOV"
@@ -56,6 +66,17 @@ class TestTextFunctions(unittest.TestCase):
             icdelta9 += cryptanalysis.index_coincidence(tr)
         self.assertEqual(ic9, round(icdelta9/9, 2))
 
+    def test_chi_square(self):
+        english = utility.readfile('data/play_that_funky_music.txt')
+        freq_english = cryptanalysis.letter_frequency(english)
+
+        non_english = utility.readfile('test_data/vigenere1.txt')
+        freq_non_english = cryptanalysis.letter_frequency(non_english)
+
+        chi_english = cryptanalysis.chi_square_letter_freq(freq_english, cryptanalysis.get_expected_freq(len(freq_english), cryptanalysis.FREQ_ENGLISH))
+        chi_non_english = cryptanalysis.chi_square_letter_freq(freq_non_english, cryptanalysis.get_expected_freq(len(freq_non_english), cryptanalysis.FREQ_ENGLISH))
+
+        self.assertLess(chi_english, chi_non_english)
 
 class TextXorFunctions(unittest.TestCase):
     def test_find_single_byte_xor_key(self):
@@ -65,9 +86,20 @@ class TextXorFunctions(unittest.TestCase):
         key = 88
 
         m, k, _ = cryptanalysis.find_single_byte_xor_key(ciphertext)
-        print(k, m)
         self.assertEqual(key, k)
         self.assertEqual(plaintext, m)
+
+    def test_find_single_byte_xor_key2(self):
+        c1 = '7b5a4215415d544115415d5015455447414c155c46155f4058455c5b523f'
+        c2 = '3f1b5a343f034832193b153c482f1705392f021f5f0953290c4c43312b36'
+        c1 = conversions.hex_to_bytes(c1)
+        c2 = conversions.hex_to_bytes(c2)
+
+        m1, k1, d1 = cryptanalysis.find_single_byte_xor_key(c1)
+        m2, k2, d2 = cryptanalysis.find_single_byte_xor_key(c2)
+
+        self.assertLess(d1, d2)
+
 
 class TestVigenereFunctions(unittest.TestCase):
     def test_find_vigenere_key_len(self):
@@ -95,7 +127,7 @@ class TextModernCryptoFunctions(unittest.TestCase):
             i = 0
             for hexline in cipherfile:
                 hexline = hexline.strip()
-                byteline = conversions.bytes_to_ascii(conversions.hex_to_bytes(hexline))
+                byteline = conversions.hex_to_bytes(hexline)
                 if cryptanalysis.detect_ecb(byteline, blocklen):
                     found_index = i
                     break

@@ -1,4 +1,5 @@
 __author__ = 'Calle'
+from builtins import bytes, str
 import unittest
 
 from zetacrypt import ciphers, conversions, utility

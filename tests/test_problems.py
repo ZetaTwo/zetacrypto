@@ -1,4 +1,5 @@
 __author__ = 'Calle'
+from builtins import bytes, str
 import unittest
 
 from zetacrypt import conversions, utility, ciphers, cryptanalysis, INF
@@ -83,7 +84,7 @@ class TestSet1Problems(unittest.TestCase):
         self.assertEqual(target_key, key)
 
         m = ciphers.xor_seq_key(ciphertext, key)
-        m = conversions.bytes_to_ascii(m)
+        m = conversions.bytes_to_ascii(bytes(m))
         self.assertEqual(plaintext, m)
 
     def test_problem7(self):
@@ -108,7 +109,7 @@ class TestSet1Problems(unittest.TestCase):
             i = 0
             for hexline in cipherfile:
                 hexline = hexline.strip()
-                byteline = conversions.bytes_to_ascii(conversions.hex_to_bytes(hexline))
+                byteline = conversions.hex_to_bytes(hexline)
                 if cryptanalysis.detect_ecb(byteline, blocklen):
                     found_index = i
                     break
@@ -189,17 +190,17 @@ class TestSet2Problems(unittest.TestCase):
     def test_problem15(self):
         """PKCS#7 padding validation"""
         blocklen = 10
-        ciphertext1 = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        ciphertext1 = bytes("YELLOW SUBMARINE\x04\x04\x04\x04", 'ascii')
         self.assertTrue(ciphers.pkcs7_verify(ciphertext1, blocklen))
 
-        ciphertext2 = b"YELLOW SUBMARINE\x05\x05\x05\x05"
+        ciphertext2 = bytes("YELLOW SUBMARINE\x05\x05\x05\x05", 'ascii')
         self.assertFalse(ciphers.pkcs7_verify(ciphertext2, blocklen))
 
-        ciphertext3 = b"YELLOW SUBMARIN\x04\x04\x04\x04"
+        ciphertext3 = bytes("YELLOW SUBMARIN\x04\x04\x04\x04", 'ascii')
         self.assertFalse(ciphers.pkcs7_verify(ciphertext3, blocklen))
 
         plaintext = conversions.ascii_to_bytes("YELLOW SUBMARINE")
-        ciphertext = b"YELLOW SUBMARINE\x04\x04\x04\x04"
+        ciphertext = bytes("YELLOW SUBMARINE\x04\x04\x04\x04", 'ascii')
         m = ciphers.pkcs7_strip(ciphertext)
         self.assertEqual(plaintext, m)
 
