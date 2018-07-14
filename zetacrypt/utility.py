@@ -7,6 +7,9 @@ def readfile(path):
     return res
 
 
+#def chunks(iterable, chunksize):
+#    return zip(*[iter(iterable)]*chunksize)
+
 def chunks(seq, size):
     num_blocks = (len(seq) + size - 1) // size
     for i in range(num_blocks):

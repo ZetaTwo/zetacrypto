@@ -1,8 +1,13 @@
 from __future__ import division
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
-from builtins import bytes, str, filter, map, range
+from builtins import bytes, str, filter, map, range, zip
+from future.standard_library import install_aliases
+from functools import reduce
+from six import byte2int, int2byte
+import operator
+install_aliases()
 
-import string, operator, scipy.stats
+import string, operator, itertools, scipy.stats
 from scipy.stats.distributions import chi2
 from collections import Counter
 
@@ -28,13 +33,16 @@ def get_expected_freq(message_len, freq):
 
 
 def count_printable(seq):
-    """Returns the number of printable ASCII characters in seq"""
-    return len(list(filter(lambda c: 32 <= c < 127 or c == ord('\n'), seq)))
+    """Returns the number of printable and the total number of ASCII characters in seq as a tuple"""
+    printable_list = map(lambda c: 32 <= c < 127 or c == ord('\n'), seq)
+    printable_total_list = map(lambda c: (1 if c else 0, 1), printable_list)
+    return tuple(reduce(lambda x, y: (x[0]+y[0], x[1]+y[1]), printable_total_list, (0,0)))
 
 
 def is_printable(seq):
     """Returns true is seq consists solely of printable ASCII characters"""
-    return len(seq) == count_printable(seq)
+    printable, total = count_printable(seq)
+    return printable == total
 
 
 def letter_frequency(seq):
@@ -68,17 +76,21 @@ def chi_square_letter_freq(freq, expected):
     chival, _ = scipy.stats.chisquare(obs, expected)
     return chival
 
-
+#@profile
 def find_single_byte_xor_key(seq):
     """Find the most probable single byte XOR key used to encrypt seq"""
     best_dist = INF
     best_key = 0
     best = "FAIL"
     for key in range(BYTE_MAX):
-        mb = iterator_to_bytes(xor_seq_byte(seq, key))
-
-        if not is_printable(mb):
+        key = int2byte(key)
+        xor = xor_seq_byte(seq, key)
+        #mb = iterator_to_bytes(xor)
+        xor1, xor2 = itertools.tee(xor)
+        xor2, a = itertools.tee(xor2)
+        if not is_printable(xor1):
             continue
+        mb = iterator_to_bytes(xor2)
 
         m = bytes_to_ascii(mb)
 
@@ -148,7 +160,7 @@ def encryption_detection_oracle_ecb_cbc(oracle, blocklen, answer=False):
 def find_ecb_block_length(blackbox):
     """Finds out the block length of a ECB encryption function."""
     # Find start of new block
-    secret_len = len(blackbox(b""))
+    secret_len = len(blackbox(""))
     for block_start_cand in range(256):
         newlen = len(blackbox(b"A" * block_start_cand))
         if newlen > secret_len:

@@ -1,16 +1,18 @@
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 from builtins import bytes, str, filter, map
 from future.utils import tobytes
+from six import int2byte
+import six
 import binascii, base64
 
 
 def hex_to_bytes(seq):
     """Converts seq from hex string to byte array"""
-    return bytes(binascii.unhexlify(seq))
+    return bytearray.fromhex(seq)
 
 def ascii_to_bytes(seq):
     """Converts seq from ASCII string to byte array"""
-    return bytes(seq, 'ascii')
+    return six.iterbytes(seq)
 
 def bytes_to_hex(seq):
     """Converts seq from byte array to hex string"""

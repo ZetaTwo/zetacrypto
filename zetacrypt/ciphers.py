@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 __author__ = 'Calle Svensson <calle.svensson@zeta-two.com>'
 from future.standard_library import install_aliases
-from future.utils import tobytes, bord
+from future.utils import tobytes
+from six import byte2int, int2byte
 install_aliases()
 from builtins import bytes, str, filter, map
 
@@ -19,24 +20,31 @@ import re
 
 def xor_seq_byte(seq, key):
     """Returns seq XOR:ed with single byte key"""
-    return map(lambda x: x ^ key, seq)
+    return map(lambda x: int2byte(x ^ byte2int(key)), seq)
 
 
 def xor_seq_key(seq, key):
     """Returns seq XOR:ed with key repeated to cover all of seq"""
-    return map(lambda x: x[0] ^ x[1], zip(itertools.cycle(key), seq))
+    key = map(byte2int, key)
+    return map(lambda x: int2byte(byte2int(x[0]) ^ x[1]), zip(seq, itertools.cycle(key)))
 
 
 def pkcs7_pad(seq, blocklen):
     """Pad seq to a length which is an integer multiple of blocklen by the PKCS#7 standard"""
-    padlen = blocklen - (len(seq) % blocklen)
+    seq_len = 0
+    for c in seq:
+        seq_len += 1
+        yield c
+
+    padlen = blocklen - (seq_len % blocklen)
     assert padlen >= 0
-    return seq + bytes([padlen] * padlen)
+    
+    for i in range(padlen):
+        yield padlen
 
 
 def pkcs7_verify(seq, blocklen):
     """Verifies that seq is a properly padded PKCS#7 sequence"""
-    print(type(seq))
     assert(type(seq) == bytes)
     padlen = seq[-1]
     return (len(seq) % blocklen == 0) \
@@ -46,8 +54,6 @@ def pkcs7_verify(seq, blocklen):
 
 def pkcs7_strip(seq):
     """Strips away the PKCS#7 padding from seq"""
-    #padlen = bytearray([seq[-1]])[0] #TODO: Really ugly way to support both Py2 & 3
-    #print(type(seq))
     padlen = seq[-1]
     return seq[:-padlen]
 
@@ -105,7 +111,7 @@ def black_box1(plaintext, answer=False):
     prepend = generate_key(randint(5, 10))
     append = generate_key(randint(5, 10))
 
-    m = pkcs7_pad(prepend + plaintext + append, 16)
+    m = pkcs7_pad(itertools.chain(prepend, plaintext, append), 16)
 
     mode = randint(0, 1)
     if mode == 0:  # CBC
@@ -128,7 +134,9 @@ class BlackBox2:
         self.key = generate_key(self.BLOCKLEN)
 
     def __call__(self, plaintext):
-        m = pkcs7_pad(plaintext + self.ciphertext, self.BLOCKLEN)
+        plaintext = ascii_to_bytes(plaintext)
+        padded = pkcs7_pad(itertools.chain(plaintext, self.ciphertext), self.BLOCKLEN)
+        m = iterator_to_bytes(padded)
         return aes_128_ecb_encrypt(m, self.key)
 
 
@@ -145,7 +153,7 @@ class ProfileEncoder1:
         return 'email=' + email + '&uid=' + str(self.next_user_id) + '&role=user'
 
     def profile_for(self, email):
-        m = pkcs7_pad(tobytes(self.create_profile(email)), self.BLOCKLEN)
+        m = iterator_to_bytes(pkcs7_pad(tobytes(self.create_profile(email)), self.BLOCKLEN))
         return aes_128_ecb_encrypt(m, self.key)
 
     @staticmethod
